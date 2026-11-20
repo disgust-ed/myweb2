@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>나만의 카페 경영 시뮬레이션</title>
+  <style>
+    :root {
+      --bg-cream: #faf6f0;
+      --card-bg: #ffffff;
+      --espresso: #3e2723;
+      --roast: #6d4c41;
+      --latte: #a1887f;
+      --latte-light: #efebe9;
+      --accent-green: #2e7d32;
+      --accent-green-bg: #e8f5e9;
+      --accent-red: #c62828;
+      --accent-red-bg: #ffebee;
+      --accent-amber: #b26a00;
+      --accent-amber-bg: #fff8e1;
+      --text-main: #2c1e1a;
+      --text-muted: #6e5c56;
+      --border: #e6dcd3;
+      --shadow: 0 8px 24px rgba(62, 39, 35, 0.08);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", "Malgun Gothic", sans-serif;
+      background: linear-gradient(180deg, #f7f1e8 0%, var(--bg-cream) 100%);
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .badge {
+      display: inline-block;
+      background-color: var(--latte-light);
+      color: var(--roast);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 3.5vw, 2.25rem);
+      color: var(--espresso);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+    }
+
+    .sim-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 860px) {
+      .sim-grid {
+        grid-template-columns: 1fr 1.18fr;
+        align-items: start;
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--espresso);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.96rem;
+      color: var(--text-main);
+    }
+
+    .hint-text {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .input-box {
+      display: flex;
+      align-items: center;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background-color: #fffdfb;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+    }
+
+    .input-box:focus-within {
+      border-color: var(--roast);
+      box-shadow: 0 0 0 4px rgba(109, 76, 65, 0.12);
+    }
+
+    .input-box input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 13px 16px;
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: var(--espresso);
+      min-height: 48px;
+      outline: none;
+    }
+
+    .unit {
+      padding: 0 16px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--roast);
+      background-color: var(--latte-light);
+      height: 50px;
+      display: flex;
+      align-items: center;
+      border-left: 1px solid var(--border);
+      user-select: none;
+    }
+
+    .feedback-msg {
+      min-height: 18px;
+      font-size: 0.82rem;
+      color: var(--accent-red);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .section-block {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .block-label {
+      font-size: 0.88rem;
+      color: var(--espresso);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+
+    .block-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .preset-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .event-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    @media (min-width: 520px) {
+      .event-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .btn {
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: transform 0.1s, background-color 0.2s, border-color 0.2s, color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-preset {
+      background-color: var(--latte-light);
+      color: var(--espresso);
+      flex: 1 1 auto;
+    }
+
+    .btn-preset:hover {
+      background-color: #e3d8d0;
+      border-color: var(--latte);
+    }
+
+    .btn-event {
+      background-color: #fffdfb;
+      color: var(--text-main);
+      flex-direction: column;
+      gap: 2px;
+      padding: 10px;
+      line-height: 1.3;
+    }
+
+    .btn-event:hover {
+      background-color: var(--latte-light);
+      border-color: var(--latte);
+    }
+
+    .btn-event.active {
+      background-color: var(--espresso);
+      color: #ffffff;
+      border-color: var(--espresso);
+    }
+
+    .btn-event .event-desc {
+      font-size: 0.75rem;
+      opacity: 0.85;
+      font-weight: 500;
+    }
+
+    .btn-reset {
+      width: 100%;
+      background-color: #ffffff;
+      color: var(--roast);
+      border: 1.5px solid var(--roast);
+      margin-top: 4px;
+    }
+
+    .btn-reset:hover {
+      background-color: var(--latte-light);
+    }
+
+    .active-vars-banner {
+      background-color: var(--accent-amber-bg);
+      border: 1px solid #ffe082;
+      color: var(--accent-amber);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .active-vars-banner.neutral {
+      background-color: #fdfbf8;
+      border-color: var(--border);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .effective-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .pill {
+      background-color: #ffffff;
+      border: 1px solid rgba(178, 106, 0, 0.35);
+      color: var(--espresso);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    @media (min-width: 540px) {
+      .summary-cards {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .metric-box {
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      background-color: #fdfbf8;
+    }
+
+    .metric-box.revenue {
+      border-top: 4px solid var(--roast);
+    }
+
+    .metric-box.cost {
+      border-top: 4px solid var(--latte);
+    }
+
+    .metric-box.profit {
+      border-top: 4px solid var(--accent-green);
+      background-color: var(--accent-green-bg);
+      border-color: #c8e6c9;
+    }
+
+    .metric-box.profit.loss {
+      border-top-color: var(--accent-red);
+      background-color: var(--accent-red-bg);
+      border-color: #ffcdd2;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: clamp(1.08rem, 2.1vw, 1.32rem);
+      font-weight: 800;
+      color: var(--espresso);
+      word-break: break-word;
+    }
+
+    .metric-box.profit .metric-value {
+      color: var(--accent-green);
+    }
+
+    .metric-box.profit.loss .metric-value {
+      color: var(--accent-red);
+    }
+
+    .metric-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .delta-note {
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .delta-pos {
+      color: var(--accent-green);
+    }
+
+    .delta-neg {
+      color: var(--accent-red);
+    }
+
+    .alert-banner {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background-color: var(--accent-red-bg);
+      border: 1px solid #ef9a9a;
+      color: var(--accent-red);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .alert-banner.show {
+      display: block;
+    }
+
+    .chart-section {
+      margin-top: 8px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .chart-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--espresso);
+    }
+
+    .chart-note {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .bar-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bar-item {
+      width: 100%;
+    }
+
+    .bar-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      gap: 10px;
+      font-size: 0.92rem;
+    }
+
+    .bar-name {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .bar-amount {
+      font-weight: 700;
+      color: var(--espresso);
+      white-space: nowrap;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 30px;
+      background-color: var(--latte-light);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width 0.35s ease, background-color 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      color: #ffffff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      min-width: 0;
+    }
+
+    .bar-fill.revenue {
+      background: linear-gradient(90deg, #6d4c41, #4e342e);
+    }
+
+    .bar-fill.profit {
+      background: linear-gradient(90deg, #43a047, #2e7d32);
+    }
+
+    .bar-fill.profit.loss {
+      background: linear-gradient(90deg, #e53935, #c62828);
+    }
+
+    .disclaimer {
+      margin-top: 24px;
+      background-color: #fffdf9;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--latte);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .disclaimer strong {
+      color: var(--espresso);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">☕ CAFE OPERATION SIMULATOR + VARIANTS</div>
+      <h1>나만의 카페 경영 시뮬레이션</h1>
+      <p class="subtitle">음료 판매가, 재료비, 판매량과 날씨·요일·이벤트 변수를 조합해 하루 매출과 이익을 확인해 보세요.</p>
+    </header>
+
+    <main class="sim-grid">
+      <section class="card" aria-label="경영 조건 및 상황 변수 입력">
+        <h2 class="card-title">📝 하루 운영 조건 입력</h2>
+
+        <div class="input-group">
+          <div class="input-label-row">
+            <label for="priceInput">커피 한 잔 판매 가격</label>
+            <span class="hint-text">기본값: 4,000원</span>
+          </div>
+          <div class="input-box">
+            <input
+              type="text"
+              id="priceInput"
+              inputmode="numeric"
+              value="4,000"
+              aria-label="커피 한 잔 판매 가격"
+            />
+            <span class="unit">원</span>
+          </div>
+          <div class="feedback-msg" id="priceFeedback" role="alert"></div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-label-row">
+            <label for="costInput">커피 한 잔 재료비</label>
+            <span class="hint-text">기본값: 1,500원</span>
+          </div>
+          <div class="input-box">
+            <input
+              type="text"
+              id="costInput"
+              inputmode="numeric"
+              value="1,500"
+              aria-label="커피 한 잔 재료비"
+            />
+            <span class="unit">원</span>
+          </div>
+          <div class="feedback-msg" id="costFeedback" role="alert"></div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-label-row">
+            <label for="volumeInput">하루 예상 판매량</label>
+            <span class="hint-text">기본값: 50잔</span>
+          </div>
+          <div class="input-box">
+            <input
+              type="text"
+              id="volumeInput"
+              inputmode="numeric"
+              value="50"
+              aria-label="하루 예상 판매량"
+            />
+            <span class="unit">잔</span>
+          </div>
+          <div class="feedback-msg" id="volumeFeedback" role="alert"></div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">
+            <span>빠른 판매량 프리셋</span>
+            <span class="block-sub">기본 판매량 변경</span>
+          </div>
+          <div class="preset-buttons">
+            <button type="button" class="btn btn-preset" data-volume="30">한가한 날 (30잔)</button>
+            <button type="button" class="btn btn-preset" data-volume="50">평일 평균 (50잔)</button>
+            <button type="button" class="btn btn-preset" data-volume="100">바쁜 날 (100잔)</button>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">
+            <span>🌦️ 날씨 · 요일 · 이벤트 변수</span>
+            <span class="block-sub">중복 선택 가능</span>
+          </div>
+          <div class="event-grid">
+            <button type="button" class="btn btn-event" data-event="rain" aria-pressed="false">
+              <span>☔ 비 오는 날</span>
+              <span class="event-desc">판매량 -20%</span>
+            </button>
+            <button type="button" class="btn btn-event" data-event="weekend" aria-pressed="false">
+              <span>🎉 주말·성수기</span>
+              <span class="event-desc">판매량 +35%</span>
+            </button>
+            <button type="button" class="btn btn-event" data-event="discount" aria-pressed="false">
+              <span>🏷️ 10% 할인</span>
+              <span class="event-desc">단가 -10% · 판매 +25%</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-reset" id="resetBtn">전체 초기화 (기본값 + 변수 해제)</button>
+      </section>
+
+      <section class="card" aria-label="계산 결과 및 비교 그래프">
+        <h2 class="card-title">📊 하루 예상 경영 결과</h2>
+
+        <div class="active-vars-banner neutral" id="activeVarsBanner">
+          현재 <strong>기본 입력 조건</strong>으로 계산 중입니다. 날씨·요일·이벤트 버튼을 눌러 변수를 적용해 보세요.
+        </div>
+
+        <div class="alert-banner" id="lossAlert" role="status">
+          ⚠️ 한 잔당 재료비가 적용 판매 가격보다 낮거나 같아 재료비 제외 이익이 0원 이하입니다. 가격이나 할인 조건을 조정해 보세요.
+        </div>
+
+        <div class="summary-cards">
+          <div class="metric-box revenue">
+            <div class="metric-label">하루 예상 매출</div>
+            <div class="metric-value" id="revenueValue">200,000원</div>
+            <div class="metric-sub" id="revenueSub">4,000원 × 50잔</div>
+            <div class="delta-note" id="revenueDelta" style="display:none;"></div>
+          </div>
+
+          <div class="metric-box cost">
+            <div class="metric-label">전체 재료비</div>
+            <div class="metric-value" id="totalCostValue">75,000원</div>
+            <div class="metric-sub" id="costSub">1,500원 × 50잔</div>
+            <div class="delta-note" id="costDelta" style="display:none;"></div>
+          </div>
+
+          <div class="metric-box profit" id="profitBox">
+            <div class="metric-label">재료비 제외 이익</div>
+            <div class="metric-value" id="profitValue">125,000원</div>
+            <div class="metric-sub" id="profitSub">잔당 2,500원 (이익률 62.5%)</div>
+            <div class="delta-note" id="profitDelta" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="chart-section">
+          <div class="chart-header">
+            <span class="chart-title">매출 vs 재료비 제외 이익 비교</span>
+            <span class="chart-note" id="chartScaleNote">최대 기준 막대 비율 자동 조절</span>
+          </div>
+
+          <div class="bar-list">
+            <div class="bar-item">
+              <div class="bar-meta">
+                <span class="bar-name">하루 예상 매출</span>
+                <span class="bar-amount" id="barRevenueLabel">200,000원</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill revenue" id="barRevenueFill" style="width: 100%;">100%</div>
+              </div>
+            </div>
+
+            <div class="bar-item">
+              <div class="bar-meta">
+                <span class="bar-name" id="barProfitName">재료비 제외 이익</span>
+                <span class="bar-amount" id="barProfitLabel">125,000원</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill profit" id="barProfitFill" style="width: 62.5%;">62.5%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="disclaimer" aria-label="안내 문구">
+      <strong>안내:</strong> 본 시뮬레이션은 실제 카페 매출이나 수익을 예측하는 기능이 아니며, <strong>사용자가 입력한 조건과 선택한 상황 변수(날씨·요일·이벤트)를 바탕으로 단순 산술 계산한 결과</strong>입니다. 임대료, 인건비, 공과금, 세금, 폐기 비용 등 기타 영업비용은 포함되어 있지 않으며, 변수 비율은 시뮬레이션용 가정치입니다.
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      const DEFAULTS = {
+        price: 4000,
+        cost: 1500,
+        volume: 50
+      };
+
+      const MAX_SAFE_VALUE = 1000000000;
+
+      const EVENT_CONFIG = {
+        rain: {
+          name: "☔ 비 오는 날",
+          priceMultiplier: 1,
+          volumeMultiplier: 0.8
+        },
+        weekend: {
+          name: "🎉 주말·성수기",
+          priceMultiplier: 1,
+          volumeMultiplier: 1.35
+        },
+        discount: {
+          name: "🏷️ 10% 할인 이벤트",
+          priceMultiplier: 0.9,
+          volumeMultiplier: 1.25
+        }
+      };
+
+      const activeEvents = new Set();
+
+      const priceInput = document.getElementById("priceInput");
+      const costInput = document.getElementById("costInput");
+      const volumeInput = document.getElementById("volumeInput");
+
+      const priceFeedback = document.getElementById("priceFeedback");
+      const costFeedback = document.getElementById("costFeedback");
+      const volumeFeedback = document.getElementById("volumeFeedback");
+
+      const activeVarsBanner = document.getElementById("activeVarsBanner");
+
+      const revenueValue = document.getElementById("revenueValue");
+      const totalCostValue = document.getElementById("totalCostValue");
+      const profitValue = document.getElementById("profitValue");
+
+      const revenueSub = document.getElementById("revenueSub");
+      const costSub = document.getElementById("costSub");
+      const profitSub = document.getElementById("profitSub");
+
+      const revenueDelta = document.getElementById("revenueDelta");
+      const costDelta = document.getElementById("costDelta");
+      const profitDelta = document.getElementById("profitDelta");
+
+      const profitBox = document.getElementById("profitBox");
+      const lossAlert = document.getElementById("lossAlert");
+
+      const barRevenueLabel = document.getElementById("barRevenueLabel");
+      const barProfitLabel = document.getElementById("barProfitLabel");
+      const barRevenueFill = document.getElementById("barRevenueFill");
+      const barProfitFill = document.getElementById("barProfitFill");
+      const barProfitName = document.getElementById("barProfitName");
+      const chartScaleNote = document.getElementById("chartScaleNote");
+
+      const resetBtn = document.getElementById("resetBtn");
+      const presetButtons = document.querySelectorAll(".btn-preset");
+      const eventButtons = document.querySelectorAll(".btn-event");
+
+      function formatNumber(num) {
+        return Math.round(num).toLocaleString("ko-KR");
+      }
+
+      function formatWon(num) {
+        const rounded = Math.round(num);
+        if (rounded < 0) {
+          return "-" + Math.abs(rounded).toLocaleString("ko-KR") + "원";
+        }
+        return rounded.toLocaleString("ko-KR") + "원";
+      }
+
+      function formatSignedWon(diff) {
+        const rounded = Math.round(diff);
+        if (rounded > 0) return `기본 대비 +${rounded.toLocaleString("ko-KR")}원`;
+        if (rounded < 0) return `기본 대비 -${Math.abs(rounded).toLocaleString("ko-KR")}원`;
+        return "기본 대비 변동 없음";
+      }
+
+      function sanitizeIntegerInput(rawValue, feedbackEl, labelName) {
+        const str = String(rawValue ?? "").trim();
+        let message = "";
+
+        if (str === "") {
+          return { value: 0, message: "" };
+        }
+
+        if (str.includes("-") || /[^0-9,\s]/.test(str)) {
+          message = `${labelName}에는 0 이상의 숫자만 입력할 수 있습니다.`;
+        }
+
+        const digitsOnly = str.replace(/[^0-9]/g, "");
+        let parsed = digitsOnly === "" ? 0 : parseInt(digitsOnly, 10);
+
+        if (!Number.isSafeInteger(parsed) || parsed < 0) {
+          parsed = 0;
+          message = `${labelName}에는 0 이상의 숫자만 입력할 수 있습니다.`;
+        } else if (parsed > MAX_SAFE_VALUE) {
+          parsed = MAX_SAFE_VALUE;
+          message = `${labelName}은 최대 ${formatNumber(MAX_SAFE_VALUE)}까지만 입력할 수 있습니다.`;
+        }
+
+        if (feedbackEl) {
+          feedbackEl.textContent = message;
+        }
+
+        return { value: parsed, message };
+      }
+
+      function syncFormattedInput(inputEl, numericValue) {
+        if (document.activeElement !== inputEl) {
+          inputEl.value = formatNumber(numericValue);
+        } else if (inputEl.value !== "") {
+          const caret = inputEl.selectionStart;
+          const prevLen = inputEl.value.length;
+          const formatted = formatNumber(numericValue);
+          if (inputEl.value !== formatted) {
+            inputEl.value = formatted;
+            const diff = formatted.length - prevLen;
+            inputEl.setSelectionRange(Math.max(0, caret + diff), Math.max(0, caret + diff));
+          }
+        }
+      }
+
+      function setDeltaText(el, diff) {
+        if (activeEvents.size === 0) {
+          el.style.display = "none";
+          el.textContent = "";
+          el.className = "delta-note";
+          return;
+        }
+        el.style.display = "block";
+        el.textContent = formatSignedWon(diff);
+        el.className = "delta-note " + (diff > 0 ? "delta-pos" : diff < 0 ? "delta-neg" : "");
+      }
+
+      function updateSimulation() {
+        const basePrice = sanitizeIntegerInput(priceInput.value, priceFeedback, "판매 가격").value;
+        const baseCost = sanitizeIntegerInput(costInput.value, costFeedback, "재료비").value;
+        const baseVolume = sanitizeIntegerInput(volumeInput.value, volumeFeedback, "예상 판매량").value;
+
+        syncFormattedInput(priceInput, basePrice);
+        syncFormattedInput(costInput, baseCost);
+        syncFormattedInput(volumeInput, baseVolume);
+
+        // 기본(변수 미적용) 계산값
+        const baseRevenue = basePrice * baseVolume;
+        const baseTotalCost = baseCost * baseVolume;
+        const baseProfit = baseRevenue - baseTotalCost;
+
+        // 선택된 상황 변수 곱셈 적용
+        let priceMult = 1;
+        let volumeMult = 1;
+        const selectedNames = [];
+
+        activeEvents.forEach((key) => {
+          const cfg = EVENT_CONFIG[key];
+          if (cfg) {
+            selectedNames.push(cfg.name);
+            priceMult *= cfg.priceMultiplier;
+            volumeMult *= cfg.volumeMultiplier;
+          }
+        });
+
+        const effectivePrice = Math.max(0, Math.round(basePrice * priceMult));
+        const effectiveVolume = Math.max(0, Math.round(baseVolume * volumeMult));
+
+        const revenue = effectivePrice * effectiveVolume;
+        const totalCost = baseCost * effectiveVolume;
+        const profit = revenue - totalCost;
+        const unitMargin = effectivePrice - baseCost;
+        const isLoss = profit < 0;
+
+        // 배너 상태 업데이트
+        if (activeEvents.size === 0) {
+          activeVarsBanner.className = "active-vars-banner neutral";
+          activeVarsBanner.innerHTML =
+            "현재 <strong>기본 입력 조건</strong>으로 계산 중입니다. 날씨·요일·이벤트 버튼을 눌러 변수를 적용해 보세요.";
+        } else {
+          activeVarsBanner.className = "active-vars-banner";
+          const pillsHtml = `
+            <div class="effective-pills">
+              <span class="pill">적용 단가: ${formatWon(effectivePrice)}</span>
+              <span class="pill">적용 판매량: ${formatNumber(effectiveVolume)}잔</span>
+            </div>
+          `;
+          activeVarsBanner.innerHTML = `적용 변수: <strong>${selectedNames.join(" + ")}</strong>${pillsHtml}`;
+        }
+
+        revenueValue.textContent = formatWon(revenue);
+        totalCostValue.textContent = formatWon(totalCost);
+        profitValue.textContent = formatWon(profit);
+
+        revenueSub.textContent = `${formatWon(effectivePrice)} × ${formatNumber(effectiveVolume)}잔`;
+        costSub.textContent = `${formatWon(baseCost)} × ${formatNumber(effectiveVolume)}잔`;
+
+        if (revenue > 0) {
+          const marginRate = ((profit / revenue) * 100).toFixed(1);
+          profitSub.textContent = `잔당 ${formatWon(unitMargin)} (이익률 ${marginRate}%)`;
+        } else {
+          profitSub.textContent = `잔당 ${formatWon(unitMargin)} (매출 0원)`;
+        }
+
+        setDeltaText(revenueDelta, revenue - baseRevenue);
+        setDeltaText(costDelta, totalCost - baseTotalCost);
+        setDeltaText(profitDelta, profit - baseProfit);
+
+        if (isLoss) {
+          profitBox.classList.add("loss");
+          lossAlert.classList.add("show");
+          barProfitFill.classList.add("loss");
+          barProfitName.textContent = "재료비 제외 이익 (적자)";
+        } else {
+          profitBox.classList.remove("loss");
+          lossAlert.classList.remove("show");
+          barProfitFill.classList.remove("loss");
+          barProfitName.textContent = "재료비 제외 이익";
+        }
+
+        const absProfit = Math.abs(profit);
+        const maxVal = Math.max(revenue, absProfit, 0);
+
+        barRevenueLabel.textContent = formatWon(revenue);
+        barProfitLabel.textContent = formatWon(profit);
+
+        if (maxVal === 0) {
+          barRevenueFill.style.width = "0%";
+          barRevenueFill.textContent = "";
+          barProfitFill.style.width = "0%";
+          barProfitFill.textContent = "";
+          chartScaleNote.textContent = "금액을 입력하면 막대가 표시됩니다.";
+        } else {
+          const revPct = (revenue / maxVal) * 100;
+          const profPct = (absProfit / maxVal) * 100;
+
+          barRevenueFill.style.width = `${revPct.toFixed(1)}%`;
+          barRevenueFill.textContent = revPct >= 16 ? `${revPct.toFixed(0)}%` : "";
+
+          barProfitFill.style.width = `${profPct.toFixed(1)}%`;
+          const prefix = isLoss ? "-" : "";
+          barProfitFill.textContent = profPct >= 18 ? `${prefix}${profPct.toFixed(0)}%` : "";
+
+          chartScaleNote.textContent = `최대 금액 ${formatWon(maxVal)} 기준 비교`;
+        }
+      }
+
+      [priceInput, costInput, volumeInput].forEach((input) => {
+        input.addEventListener("input", updateSimulation);
+        input.addEventListener("blur", updateSimulation);
+      });
+
+      presetButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const vol = parseInt(btn.getAttribute("data-volume"), 10);
+          volumeInput.value = formatNumber(vol);
+          volumeFeedback.textContent = "";
+          updateSimulation();
+        });
+      });
+
+      eventButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const key = btn.getAttribute("data-event");
+          if (!key) return;
+          if (activeEvents.has(key)) {
+            activeEvents.delete(key);
+            btn.classList.remove("active");
+            btn.setAttribute("aria-pressed", "false");
+          } else {
+            activeEvents.add(key);
+            btn.classList.add("active");
+            btn.setAttribute("aria-pressed", "true");
+          }
+          updateSimulation();
+        });
+      });
+
+      resetBtn.addEventListener("click", () => {
+        priceInput.value = formatNumber(DEFAULTS.price);
+        costInput.value = formatNumber(DEFAULTS.cost);
+        volumeInput.value = formatNumber(DEFAULTS.volume);
+        priceFeedback.textContent = "";
+        costFeedback.textContent = "";
+        volumeFeedback.textContent = "";
+
+        activeEvents.clear();
+        eventButtons.forEach((btn) => {
+          btn.classList.remove("active");
+          btn.setAttribute("aria-pressed", "false");
+        });
+
+        updateSimulation();
+      });
+
+      updateSimulation();
+    })();
+  </script>
+</body>
+</html>
